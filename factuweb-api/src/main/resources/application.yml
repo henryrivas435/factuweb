@@ -1,0 +1,61 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: factuweb-api
+
+  datasource:
+    # En el hosting se pasa la URL completa de la base en DB_URL
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:factuweb}}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # Sin esto, data.sql se ejecutaria ANTES de que Hibernate cree las tablas
+    # y fallaria con "no existe la relacion empresa".
+    defer-datasource-initialization: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 4MB
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+factuweb:
+  jwt:
+    # En produccion esta clave debe leerse de una variable de entorno
+    secret: ${JWT_SECRET:factuweb-clave-secreta-de-desarrollo-cambiar-en-produccion-2026}
+    expiracion-ms: 28800000   # 8 horas
+  archivos:
+    # Carpeta donde se guardan los logotipos y las fotos de productos.
+    # Se crea sola al arrancar, junto al proyecto.
+    directorio: ./archivos-subidos
+    # Direccion con la que el navegador pide esas imagenes
+    ruta-publica: /archivos
+
+  facturacion:
+    porcentaje-iva: 0.13
+    url-verificacion: https://factuweb.sv/v/
+
+logging:
+  level:
+    sv.com.factuweb.api: DEBUG

@@ -1,0 +1,12 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+*.log
+application-local.yml
+
+# Imagenes subidas por los negocios
+archivos-subidos/

@@ -1,0 +1,50 @@
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    
+    # El navegador pide /api/... y Nginx lo reenvia a la API. API_URL es
+    # http://api:8080 en docker-compose y la URL publica en el hosting.
+    # La imagen de nginx reemplaza ${API_URL} al arrancar.
+    # Cumple el mismo papel que el proxy de vite.config.js, que solo
+    # funciona durante el desarrollo.
+    location /api/ {
+        proxy_pass         ${API_URL}/api/;
+        proxy_ssl_server_name on;
+        proxy_http_version 1.1;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # Las imagenes pueden pesar hasta 2 MB
+        client_max_body_size 8m;
+    }
+
+    #Logotipos y fotos de productos
+    location /archivos/ {
+        proxy_pass       ${API_URL}/archivos/;
+        proxy_ssl_server_name on;
+    }
+
+    # Las rutas de React
+    # Al recargar en /facturas/3, el navegador le pide esa ruta a Nginx.
+    # Como no existe ese archivo, se devuelve index.html y React resuelve
+    # la navegacion. Sin esta linea, recargar daria un 404.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Los archivos con huella en el nombre (index-a1b2c3.js) nunca
+    # cambian de contenido, asi que se pueden guardar en cache mucho tiempo.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml application/json;
+    gzip_min_length 1024;
+}

@@ -1,0 +1,32 @@
+# Despliegue en Render (plan gratuito). La base PostgreSQL esta en Neon.
+# Render pide al crear el Blueprint los valores marcados con sync: false.
+services:
+  - type: web
+    name: factuweb-api
+    runtime: docker
+    plan: free
+    rootDir: factuweb-api
+    healthCheckPath: /api/publico/negocios
+    envVars:
+      # jdbc:postgresql://<host-de-neon>/<base>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # El plan gratuito tiene 512 MB: que Java no pida mas memoria de la que hay
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75
+
+  - type: web
+    name: factuweb-app
+    runtime: docker
+    plan: free
+    rootDir: factuweb-app
+    envVars:
+      # URL publica de factuweb-api, sin barra al final
+      - key: API_URL
+        sync: false

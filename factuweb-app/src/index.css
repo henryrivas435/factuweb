@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/*
+   Sistema visual de FactuWeb.
+   El lenguaje viene del talonario de facturas en papel: la franja
+   de papel carbon, la linea de perforacion, el sello de goma y las
+   cifras en tipografia monoespaciada como en un libro contable.
+   */
+@theme {
+  --color-tinta: #14213D;
+  --color-tinta-suave: #4A5570;
+  --color-papel: #FAF9F5;
+  --color-hoja: #FFFFFF;
+  --color-regla: #DDD9CE;
+  --color-carbon: #F2C744;
+  --color-sello: #B4232A;
+  --color-libro: #0E7C66;
+
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Archivo", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-papel);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Las cifras siempre alineadas, como en un libro contable */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Franja de papel carbon que corona las hojas de factura */
+  .franja-carbon {
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-carbon) 0 7px,
+      transparent 7px 14px
+    );
+  }
+  /* Linea de perforacion del talonario */
+  .perforacion {
+    border-top: 2px dashed var(--color-regla);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+   Impresión.
+   Al imprimir una factura solo debe salir la hoja: nada de menú,
+   botones ni encabezados de la aplicación. Todo lo que no sea la
+   factura se marca con .no-imprimir y aquí se oculta.
+*/
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 12mm;
+  }
+
+  .no-imprimir,
+  .no-imprimir * {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* La factura ocupa la hoja completa, sin sombras ni bordes de tarjeta */
+  .hoja-impresion {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* El contenedor deja de ser una cuadrícula para no arrastrar el menú */
+  .marco-impresion {
+    display: block !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* La hoja se comporta como bloque para que el sello, que va posicionado
+     respecto a ella, no se desplace al fondo de la página */
+  .hoja-impresion {
+    position: relative !important;
+    display: block !important;
+  }
+
+  /* Los colores del sello y la franja deben imprimirse tal cual */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

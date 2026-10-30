@@ -1,0 +1,71 @@
+
+
+services:
+
+  base:
+    image: postgres:16-alpine
+    container_name: factuweb-base
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: factuweb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: factuweb2026
+    volumes:
+      # Los datos quedan guardados aunque se apaguen los contenedores
+      - datos-postgres:/var/lib/postgresql/data
+    ports:
+      # Se expone para poder conectarse con pgAdmin desde la maquina
+      - "5432:5432"
+    healthcheck:
+      # La API espera a que la base este realmente lista, no solo iniciada
+      test: ["CMD-SHELL", "pg_isready -U postgres -d factuweb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  
+  api:
+    build:
+      context: ./factuweb-api
+      dockerfile: Dockerfile
+    container_name: factuweb-api
+    restart: unless-stopped
+    depends_on:
+      base:
+        condition: service_healthy
+    environment:
+      # Estos nombres son los que usa application.yml. Dentro de la red
+      # de Docker la base se llama "base", no localhost.
+      DB_HOST: base
+      DB_PORT: 5432
+      DB_NAME: factuweb
+      DB_USER: postgres
+      DB_PASSWORD: factuweb2026
+
+      # En un despliegue real esta clave deberia ser distinta y secreta
+      JWT_SECRET: factuweb-clave-secreta-cambiar-en-produccion-2026
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_SQL_INIT_MODE: always
+    volumes:
+      # Los logotipos y fotos sobreviven a la reconstruccion del contenedor
+      - imagenes-subidas:/app/archivos-subidos
+    ports:
+      - "8080:8080"
+
+  
+  app:
+    build:
+      context: ./factuweb-app
+      dockerfile: Dockerfile
+    container_name: factuweb-app
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      # Se mantiene el 5173 para no cambiar la direccion de siempre
+      - "5173:80"
+
+volumes:
+  datos-postgres:
+  imagenes-subidas:
