@@ -22,10 +22,9 @@ RUN useradd --system --create-home factuweb
 
 COPY --from=compilacion /build/target/*.jar app.jar
 
-# Carpeta de logotipos y fotos de productos. Se declara como volumen
-# para que las imagenes sobrevivan aunque se reconstruya el contenedor.
+# Carpeta de logotipos y fotos de productos. El volumen se monta en
+# docker-compose.yml. En Render el disco es temporal.
 RUN mkdir -p /app/archivos-subidos && chown -R factuweb:factuweb /app
-VOLUME /app/archivos-subidos
 
 USER factuweb
 EXPOSE 8080
